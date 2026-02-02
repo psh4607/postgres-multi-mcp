@@ -183,3 +183,7 @@ devenv.local.nix
 # pre-commit
 .pre-commit-config.yaml
 *.sql
+
+# Database configuration (contains credentials)
+databases.yaml
+!databases.yaml.example

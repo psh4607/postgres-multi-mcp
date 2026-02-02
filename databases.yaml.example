@@ -1,0 +1,54 @@
+# Database Configuration File for postgres-multi-mcp
+# 
+# This file defines multiple PostgreSQL database connections that can be
+# accessed through a single MCP server instance.
+#
+# Recommended locations (searched in order):
+#   1. ~/.cursor/databases.yaml          (user-level, shared across projects)
+#   2. .cursor/databases.yaml            (project-level)
+#   3. ./databases.yaml                  (current directory, for Docker)
+#
+# Or set DATABASES_CONFIG_PATH environment variable to a custom path.
+
+databases:
+  # Local development database
+  - name: local-db
+    description: Local development environment
+    uri: postgresql://postgres:postgres@localhost:5432/myapp_dev
+    access_mode: unrestricted  # Full read/write access
+
+  # Staging/EXP environment (AWS RDS example)
+  - name: exp-db
+    description: EXP environment (AWS RDS)
+    uri: postgresql://app_user:password@myapp-exp.xxxxxxxxxxxx.ap-northeast-2.rds.amazonaws.com:5432/myapp_exp
+    access_mode: restricted  # Read-only with safety features
+
+  # Production environment (AWS RDS example)
+  - name: prod-db
+    description: Production environment (AWS RDS)
+    uri: postgresql://app_readonly:password@myapp-prod.xxxxxxxxxxxx.ap-northeast-2.rds.amazonaws.com:5432/myapp_prod
+    access_mode: restricted  # Read-only with safety features
+
+# Access Modes:
+#
+# - unrestricted: Full read/write access. Use for development environments.
+#                 Allows any SQL including INSERT, UPDATE, DELETE, DROP, etc.
+#
+# - restricted:   Read-only mode with safety features. Use for production.
+#                 Only allows SELECT queries with timeout limits (30s).
+#                 Prevents accidental data modification.
+#
+# Tips:
+#
+# 1. Always use 'restricted' mode for production databases
+# 2. Use separate database users with appropriate permissions
+# 3. When running in Docker, 'localhost' will be automatically
+#    replaced with the Docker host address
+# 4. Store sensitive credentials using environment variables or
+#    external secret management (not in this file for production)
+#
+# Example with environment variables:
+#
+#   - name: prod-db
+#     uri: postgresql://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:5432/${DB_NAME}
+#     access_mode: restricted

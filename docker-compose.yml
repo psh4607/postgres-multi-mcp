@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  postgres-multi-mcp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: postgres-multi-mcp
+    ports:
+      - "8000:8000"
+    volumes:
+      # Mount your databases.yaml configuration file
+      - ./databases.yaml:/app/databases.yaml:ro
+    environment:
+      - DATABASES_CONFIG_PATH=/app/databases.yaml
+      # Optional: Set log level
+      - LOG_LEVEL=INFO
+      # Optional: For LLM-based index optimization
+      # - OPENAI_API_KEY=${OPENAI_API_KEY}
+    # Default command uses SSE transport
+    command: ["--transport=sse", "--sse-host=0.0.0.0", "--sse-port=8000"]
+    restart: unless-stopped
+    # Health check
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    # Network mode for accessing host databases (localhost)
+    # Uncomment if you need to access databases on host machine
+    # extra_hosts:
+    #   - "host.docker.internal:host-gateway"
+
+# Example usage:
+#
+# 1. Create databases.yaml file with your database configurations
+# 2. Run: docker-compose up -d
+# 3. Configure your MCP client (e.g., Cursor) to connect to http://localhost:8000/sse
+#
+# Cursor MCP configuration example (mcp.json):
+# {
+#   "mcpServers": {
+#     "postgres-multi": {
+#       "type": "sse",
+#       "url": "http://localhost:8000/sse"
+#     }
+#   }
+# }

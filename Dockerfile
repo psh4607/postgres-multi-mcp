@@ -35,11 +35,13 @@ ENV PATH="/app/.venv/bin:$PATH"
 
 ARG TARGETPLATFORM
 ARG BUILDPLATFORM
-LABEL org.opencontainers.image.description="Postgres MCP Agent - Multi-architecture container (${TARGETPLATFORM})"
-LABEL org.opencontainers.image.source="https://github.com/crystaldba/postgres-mcp"
-LABEL org.opencontainers.image.licenses="Apache-2.0"
-LABEL org.opencontainers.image.vendor="Crystal DBA"
-LABEL org.opencontainers.image.url="https://www.crystaldba.ai"
+LABEL org.opencontainers.image.description="Postgres Multi-MCP - Multi-database MCP server (${TARGETPLATFORM})"
+LABEL org.opencontainers.image.source="https://github.com/psh4607/postgres-multi-mcp"
+LABEL org.opencontainers.image.licenses="MIT"
+LABEL org.opencontainers.image.vendor="psh4607"
+
+# Environment variable for database configuration file
+ENV DATABASES_CONFIG_PATH=/app/databases.yaml
 
 # Install runtime system dependencies
 RUN apt-get update && apt-get install -y \
@@ -57,9 +59,10 @@ USER app
 # Expose the SSE port
 EXPOSE 8000
 
-# Run the postgres-mcp server
-# Users can pass a database URI or individual connection arguments:
-#   docker run -it --rm postgres-mcp postgres://user:pass@host:port/dbname
-#   docker run -it --rm postgres-mcp -h myhost -p 5432 -U myuser -d mydb
+# Run the postgres-multi-mcp server
+# Mount your databases.yaml configuration file:
+#   docker run -it --rm -v ./databases.yaml:/app/databases.yaml:ro postgres-multi-mcp
+# Or use SSE transport:
+#   docker run -p 8000:8000 -v ./databases.yaml:/app/databases.yaml:ro postgres-multi-mcp --transport=sse
 ENTRYPOINT ["/app/docker-entrypoint.sh", "postgres-mcp"]
-CMD []
+CMD ["--transport=sse", "--sse-host=0.0.0.0"]
